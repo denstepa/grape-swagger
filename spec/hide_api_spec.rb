@@ -88,35 +88,37 @@ describe 'a hide mounted api with same namespace' do
 
   it 'retrieves swagger-documentation on /swagger_doc' do
     get '/swagger_doc.json'
-    expect(JSON.parse(last_response.body)).to eq(
-      'apiVersion' => '0.1',
-      'swaggerVersion' => '1.2',
-      'info' => {},
-      'produces' => Grape::ContentTypes::CONTENT_TYPES.values.uniq,
-      'apis' => [
-        { 'path' => '/simple.{format}', 'description' => 'Operations about simples' },
-        { 'path' => '/swagger_doc.{format}', 'description' => 'Operations about swagger_docs' }
+    JSON.parse(last_response.body).should == {
+      "apiVersion" => "0.1",
+      "swaggerVersion" => "1.2",
+      "basePath" => "http://example.org",
+      "info" => {},
+      "produces" => ["application/xml", "application/json", "text/plain"],
+      "operations" => [],
+      "apis" => [
+        { "path" => "/swagger_doc/simple.{format}" },
+        { "path" => "/swagger_doc/swagger_doc.{format}" }
       ]
     )
   end
 
   it "retrieves the documentation for mounted-api that doesn't include hidden endpoints" do
     get '/swagger_doc/simple.json'
-    expect(JSON.parse(last_response.body)).to eq(
-      'apiVersion' => '0.1',
-      'swaggerVersion' => '1.2',
-      'basePath' => 'http://example.org',
-      'resourcePath' => '/simple',
-      'produces' => Grape::ContentTypes::CONTENT_TYPES.values.uniq,
-      'apis' => [{
-        'path' => '/simple/show.{format}',
-        'operations' => [{
-          'notes' => '',
-          'summary' => 'Show this endpoint',
-          'nickname' => 'GET-simple-show---format-',
-          'method' => 'GET',
-          'parameters' => [],
-          'type' => 'void'
+    JSON.parse(last_response.body).should == {
+      "apiVersion" => "0.1",
+      "swaggerVersion" => "1.2",
+      "basePath" => "http://example.org",
+      "resourcePath" => "",
+      "apis" => [{
+        "path" => "/simple/show.{format}",
+        "operations" => [{
+          "produces" => ["application/xml", "application/json", "text/plain"],
+          "notes" => nil,
+          "notes" => "",
+          "summary" => "Show this endpoint",
+          "nickname" => "GET-simple-show---format-",
+          "httpMethod" => "GET",
+          "parameters" => []
         }]
       }]
     )
