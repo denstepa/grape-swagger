@@ -4,7 +4,7 @@ describe "API Collection Representation" do
 
   before :all do
     module Entities
-      module Some
+      module Collection
         class Thing < Grape::Entity
           expose :text, :documentation => { :type => "string", :desc => "Content of thing." }
         end
@@ -20,31 +20,31 @@ describe "API Collection Representation" do
 
 
 
-    class ModelsApi < Grape::API
+    class ModelsApiCollection < Grape::API
       format :json
 
       desc 'This gets thing.', {
-          collection: { :entity => Entities::Some::Collection, :data_using => Entities::Some::Thing}
+          collection: { :entity => Entities::Collection::Collection, :data_using => Entities::Collection::Thing}
       }
       get "/things" do
         thing = [OpenStruct.new(text: 'thing1'), OpenStruct.new(text: 'thing2')]
-        present thing, with: Entities::Some::Collection
+        present thing, with: Entities::Collection::Collection
       end
 
       desc 'This gets thing.', {
-        http_codes: { 200 =>  { :model => Entities::Some::Collection, :message => "Thing details" },
+        http_codes: { 200 =>  { :model => Entities::Collection::Collection, :message => "Thing details" },
                       400 => "Error" }
       }
       get "/things2" do
         thing = [OpenStruct.new(text: 'thing1'), OpenStruct.new(text: 'thing2')]
-        present thing, with: Entities::Some::Collection
+        present thing, with: Entities::Collection::Collection
       end
 
       add_swagger_documentation
     end
   end
 
-  def app; ModelsApi; end
+  def app; ModelsApiCollection; end
 
   it "should represent collection of objects" do
     get '/swagger_doc/things.json'

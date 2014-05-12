@@ -58,8 +58,46 @@ describe 'Form Params' do
     expect(subject['apis'][1]['operations'][2]['method']).to eq 'POST'
   end
 
-  it 'treats Symbol parameter as form param' do
-    expect(subject['apis'][1]['operations'][2]['parameters'][2]['paramType']).to eq 'form'
-    expect(subject['apis'][1]['operations'][2]['parameters'][2]['type']).to eq 'string'
+    JSON.parse(last_response.body).should == {
+      "apiVersion" => "0.1",
+      "swaggerVersion" => "1.2",
+      "resourcePath" => "",
+      "basePath"=>"http://example.org",
+      "apis" => [
+        {
+          "path" => "/items.{format}",
+          "operations" => [
+            {
+              "produces" => ["application/json"],
+              "notes" => "",
+              "summary" => "",
+              "nickname" => "POST-items---format-",
+              "httpMethod" => "POST",
+              "parameters" => [ { "paramType" => "form", "name" => "name", "description" => "name of item", "type" => "String", "dataType" => "String", "required" => true } ]
+            }
+          ]
+        }, {
+          "path" => "/items/{id}.{format}",
+          "operations" => [
+            {
+              "produces" => ["application/json"],
+              "notes" => "",
+              "summary" => "",
+              "nickname" => "PUT-items--id---format-",
+              "httpMethod" => "PUT",
+              "parameters" => [ { "paramType" => "path", "name" => "id", "description" => "id of item", "type" => "Integer", "dataType" => "Integer", "required" => true }, { "paramType" => "form", "name" => "name", "description" => "name of item", "type" => "String", "dataType" => "String", "required" => true } ]
+            },
+            {
+              "produces" => ["application/json"],
+              "notes" => "",
+              "summary" => "",
+              "nickname" => "PATCH-items--id---format-",
+              "httpMethod" => "PATCH",
+              "parameters" => [ { "paramType" => "path", "name" => "id", "description" => "id of item", "type" => "Integer", "dataType" => "Integer", "required" => true }, { "paramType" => "form", "name" => "name", "description" => "name of item", "type" => "String", "dataType" => "String", "required" => true } ]
+            }
+          ]
+        }
+      ]
+    }
   end
 end

@@ -1,52 +1,54 @@
 require 'spec_helper'
 require 'i18n'
 
-describe "API Models" do
+describe "API Localization" do
 
   before :all do
     module Entities
-      class Something < Grape::Entity
-        expose :text, :documentation => { :type => "string", :desc => "Content of something." }
-      end
-      class Thing < Grape::Entity
-        expose :text, :documentation => { :type => "string", :desc => Proc.new{ I18n.t 'entity.thing' } }
-      end
-      class ThingRu < Grape::Entity
-        expose :text, :documentation => { :type => "string", :desc => Proc.new{ I18n.t 'entity.thing' } }
+      module Localization
+        class Something < Grape::Entity
+          expose :text, :documentation => { :type => "string", :desc => "Content of something." }
+        end
+        class Thing < Grape::Entity
+          expose :text, :documentation => { :type => "string", :desc => Proc.new{ I18n.t 'entity.thing' } }
+        end
+        class ThingRu < Grape::Entity
+          expose :text, :documentation => { :type => "string", :desc => Proc.new{ I18n.t 'entity.thing' } }
+        end
       end
     end
 
-    class ModelsApi < Grape::API
+    class ModelsApiLocalization < Grape::API
       format :json
 
       desc Proc.new{ I18n.t 'desc.something' }
       get '/something' do
         something = OpenStruct.new text: 'something'
-        present something, with: Entities::Something
+        present something, with: Entities::Localization::Something
       end
 
 
       desc 'some desc',{
-          entity: Entities::Thing
+          entity: Entities::Localization::Thing
       }
       get '/thing' do
         something = OpenStruct.new text: 'something'
-        present something, with: Entities::Thing
+        present something, with: Entities::Localization::Thing
       end
 
       desc 'some desc',{
-          entity: Entities::ThingRu
+          entity: Entities::Localization::ThingRu
       }
       get '/thing_t' do
         something = OpenStruct.new text: 'something_t'
-        present something, with: Entities::ThingRu
+        present something, with: Entities::Localization::ThingRu
       end
 
       add_swagger_documentation
     end
   end
 
-  def app; ModelsApi; end
+  def app; ModelsApiLocalization; end
 
   it "i18n method description default language" do
     get '/swagger_doc/something.json'

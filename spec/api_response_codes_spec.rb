@@ -4,13 +4,10 @@ describe "API Response Codes" do
 
   before :all do
     module Entities
-      module Some
+      module ResponseCodes
         class Thing < Grape::Entity
           expose :text, :documentation => { :type => "string", :desc => "Content of thing." }
         end
-      end
-
-      module Some
         class Other < Grape::Entity
           expose :text, :documentation => { :type => "string", :desc => "Content of other." }
         end
@@ -18,38 +15,35 @@ describe "API Response Codes" do
           expose :text, :documentation => { :type => "string", :desc => "Content of error." }
         end
       end
-
     end
 
-
-
-    class ModelsApi < Grape::API
+    class ModelsApiResponseCodes < Grape::API
       format :json
 
       desc 'This gets thing.', {
-          http_codes: { 200 =>  { :model => Entities::Some::Thing, :message => "Thing details" },
+          http_codes: { 200 =>  { :model => Entities::ResponseCodes::Thing, :message => "Thing details" },
                         400 => "Error" },
-          entity: Entities::Some::Thing
+          entity: Entities::ResponseCodes::Thing
       }
       get "/thing" do
         thing = OpenStruct.new text: 'thing'
-        present thing, with: Entities::Some::Thing
+        present thing, with: Entities::ResponseCodes::Thing
       end
 
       desc 'This gets other thing.', {
-          http_codes: { 200 =>  { :model => Entities::Some::Other, :message => "Other details" },
+          http_codes: { 200 =>  { :model => Entities::ResponseCodes::Other, :message => "Other details" },
                         400 => "Error" }
       }
       get "/other" do
         thing = OpenStruct.new( text: 'other' )
-        present thing, with: Entities::Some::Other
+        present thing, with: Entities::ResponseCodes::Other
       end
 
       add_swagger_documentation
     end
   end
 
-  def app; ModelsApi; end
+  def app; ModelsApiResponseCodes; end
 
   it "http codes should allow both with and without model valriants" do
     get '/swagger_doc/thing.json'
