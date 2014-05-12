@@ -181,4 +181,26 @@ module Grape
       end
     end
   end
+
+  class Collection
+
+    def initialize(options)
+      @entity = options[:entity]
+      @data = options[:data_using].to_s.split('::').last
+    end
+
+    def to_s
+      @entity.to_s
+    end
+
+    def documentation
+      @entity.exposures.inject({}) do |memo, (attribute, exposure_options)|
+        if exposure_options[:documentation].class == Proc
+          memo[attribute] = exposure_options[:documentation].call({}, {:data_using => @data})
+        end
+        memo
+      end
+    end
+  end
+
 end
