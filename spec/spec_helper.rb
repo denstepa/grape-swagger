@@ -22,3 +22,6 @@ RSpec.configure do |config|
   config.include Rack::Test::Methods
   config.raise_errors_for_deprecations!
 end
+
+I18n.load_path += Dir['config/locales/*.yml']
+I18n.default_locale = :en

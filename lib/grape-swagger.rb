@@ -47,6 +47,11 @@ module Grape
         documentation_class
       end
 
+      def desc_t(description, options = {})
+        proc = eval "lambda { I18n.t #{description} }"
+        desc(proc, options)
+      end
+
       private
 
       def combine_namespaces(app)
