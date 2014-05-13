@@ -10,8 +10,10 @@ describe "API Collection Representation" do
         end
 
         class Collection < Grape::Entity
+          expose :text, :documentation => { :type => "string", :desc => "Content of Collection." }
+
           expose :data,
-                 documentation: proc { |container, options| { type: "Array[#{options[:data_using]}]", desc: "Collection of #{options[:data_using]}"} } do |container, options|
+                 documentation: proc { |container, options| { type: "#{options[:data_using]}", desc: "Collection of #{options[:data_using]}"} } do |container, options|
             options[:data_using].represent container.data
           end
         end
@@ -40,6 +42,7 @@ describe "API Collection Representation" do
         present thing, with: Entities::Collection::Collection
       end
 
+
       desc 'This gets thing collection.', {
           http_codes: { 200 => { collection: { :entity => Entities::Collection::Collection,
                                               :data_using => Entities::Collection::Thing},
@@ -65,8 +68,13 @@ describe "API Collection Representation" do
             "name" => "Collection",
             "properties" => {
                 "data" => {
-                    "type" => "Array[Thing]",
-                    "description" => "Collection of Thing"
+                    "type" => "Thing",
+                    "description" => "Collection of Thing",
+                    "$ref" => "Thing"
+                },
+                "text" => {
+                    "type" => "string",
+                    "description" => "Content of Collection."
                 }
             }
         },
@@ -138,8 +146,13 @@ describe "API Collection Representation" do
                 "name" => "Collection",
                 "properties" => {
                     "data" => {
-                        "type" => "Array[Thing]",
-                        "description" => "Collection of Thing"
+                        "type" => "Thing",
+                        "description" => "Collection of Thing",
+                        "$ref" => "Thing"
+                    },
+                    "text" => {
+                        "type" => "string",
+                        "description" => "Content of Collection."
                     }
                 }
             },

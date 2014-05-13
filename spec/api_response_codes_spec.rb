@@ -23,7 +23,6 @@ describe "API Response Codes" do
       desc 'This gets thing.', {
           http_codes: { 200 =>  { :model => Entities::ResponseCodes::Thing, :message => "Thing details" },
                         400 => "Error" },
-          entity: Entities::ResponseCodes::Thing
       }
       get "/thing" do
         thing = OpenStruct.new text: 'thing'
@@ -78,6 +77,34 @@ describe "API Response Codes" do
 
   it "should add model from responce messages" do
     get '/swagger_doc/other.json'
+    JSON.parse(last_response.body)['apis'].should ==
+        [{
+             "path" => "/other.{format}",
+             "operations" => [{
+                                  "produces" => [
+                                      "application/json"
+                                  ],
+                                  "notes" => "",
+                                  "type" => "Other",
+                                  "summary" => "This gets other thing.",
+                                  "nickname" => "GET-other---format-",
+                                  "httpMethod" => "GET",
+                                  "parameters" => [],
+                                  "responseMessages" => [
+                                      {
+                                          "code" => 200,
+                                          "message" => "Other details",
+                                          "responseModel" => "Other"
+
+                                      },
+                                      {
+                                          "code" => 400,
+                                          "message" => "Error"
+                                      }
+                                  ]
+                              }]
+         }]
+
     JSON.parse(last_response.body)['models'].should == {
         "Other" => {
             "id" => "Other",

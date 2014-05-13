@@ -203,6 +203,8 @@ module Grape
       @entity.exposures.inject({}) do |memo, (attribute, exposure_options)|
         if exposure_options[:documentation].class == Proc
           memo[attribute] = exposure_options[:documentation].call({}, {:data_using => @data})
+        elsif !exposure_options[:documentation].nil? && !exposure_options[:documentation].empty?
+          memo[attribute.to_sym] = exposure_options[:documentation]
         end
         memo
       end
