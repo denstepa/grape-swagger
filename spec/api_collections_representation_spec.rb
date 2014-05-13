@@ -24,7 +24,7 @@ describe "API Collection Representation" do
       format :json
 
       desc 'This gets thing.', {
-          collection: { :entity => Entities::Collection::Collection, :data_using => Entities::Collection::Thing}
+        collection: { :entity => Entities::Collection::Collection, :data_using => Entities::Collection::Thing}
       }
       get "/things" do
         thing = [OpenStruct.new(text: 'thing1'), OpenStruct.new(text: 'thing2')]
@@ -36,6 +36,17 @@ describe "API Collection Representation" do
                       400 => "Error" }
       }
       get "/things2" do
+        thing = [OpenStruct.new(text: 'thing1'), OpenStruct.new(text: 'thing2')]
+        present thing, with: Entities::Collection::Collection
+      end
+
+      desc 'This gets thing collection.', {
+          http_codes: { 200 => { collection: { :entity => Entities::Collection::Collection,
+                                              :data_using => Entities::Collection::Thing},
+                                 message: "Thing details"},
+                        400 => "Error" }
+      }
+      get "/things3" do
         thing = [OpenStruct.new(text: 'thing1'), OpenStruct.new(text: 'thing2')]
         present thing, with: Entities::Collection::Collection
       end
@@ -70,7 +81,79 @@ describe "API Collection Representation" do
             }
         }
     }
+    JSON.parse(last_response.body)['apis'].should ==
+        [{
+             "path" => "/things.{format}",
+             "operations" => [{
+                "produces" => [
+                    "application/json"
+                ],
+                "notes" => "",
+                "type" => "Collection",
+                "summary" => "This gets thing.",
+                "nickname" => "GET-things---format-",
+                "httpMethod" => "GET",
+                "parameters" => []
+            }]
+         }]
+
   end
 
+  it "should include collection from response codes" do
+    get '/swagger_doc/things3.json'
+    JSON.parse(last_response.body).should == {
+        "apiVersion" => "0.1",
+        "swaggerVersion" => "1.2",
+        "basePath" => "http://example.org",
+        "resourcePath" => "",
+        "apis" => [{
+                       "path" => "/things3.{format}",
+                       "operations" => [{
+                                            "produces" => [
+                                                "application/json"
+                                            ],
+                                            "notes" => "",
+                                            "type" => "Collection",
+                                            "summary" => "This gets thing collection.",
+                                            "nickname" => "GET-things3---format-",
+                                            "httpMethod" => "GET",
+                                            "parameters" => [],
+                                            "responseMessages" => [
+                                                {
+                                                    "code" => 200,
+                                                    "message" => "Thing details",
+                                                    "responseModel" => "Collection"
 
+                                                },
+                                                {
+                                                    "code" => 400,
+                                                    "message" => "Error"
+                                                }
+                                            ]
+                                        }]
+                   }],
+        "models" => {
+            "Collection" => {
+                "id" => "Collection",
+                "name" => "Collection",
+                "properties" => {
+                    "data" => {
+                        "type" => "Array[Thing]",
+                        "description" => "Collection of Thing"
+                    }
+                }
+            },
+            "Thing" => {
+                "id" => "Thing",
+                "name" => "Thing",
+                "properties" => {
+                    "text" => {
+                        "type" => "string",
+                        "description" => "Content of thing."
+                    }
+                }
+            }
+        }
+    }
+  end
 end
