@@ -10,10 +10,10 @@ describe "API Localization" do
           expose :text, :documentation => { :type => "string", :desc => "Content of something." }
         end
         class Thing < Grape::Entity
-          expose :text, :documentation => { :type => "string", :desc => Proc.new{ I18n.t 'entity.thing' } }
+          expose :text, :documentation => { :type => "string", :desc_t => 'entity.thing' }
         end
         class ThingRu < Grape::Entity
-          expose :text, :documentation => { :type => "string", :desc => Proc.new{ I18n.t 'entity.thing' } }
+          expose :text, :documentation => { :type => "string", :desc_t => 'entity.thing' }
         end
       end
     end
@@ -21,7 +21,7 @@ describe "API Localization" do
     class ModelsApiLocalization < Grape::API
       format :json
 
-      desc Proc.new{ I18n.t 'desc.something' }
+      desc_t 'desc.something'
       get '/something' do
         something = OpenStruct.new text: 'something'
         present something, with: Entities::Localization::Something

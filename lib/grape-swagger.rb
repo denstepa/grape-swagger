@@ -48,7 +48,8 @@ module Grape
       end
 
       def desc_t(description, options = {})
-        proc = eval "lambda { I18n.t #{description} }"
+        proc_string = "Proc.new{ I18n.t('#{description}') }"
+        proc = eval(proc_string)
         desc(proc, options)
       end
 
