@@ -34,7 +34,7 @@ describe "API Collection Representation" do
       end
 
       desc 'This gets thing.', {
-        http_codes: { 200 =>  { :model => Entities::Collection::Collection, :message => "Thing details" },
+        http_codes: { 200 =>  { :entity => Entities::Collection::Collection, :message => "Thing details" },
                       400 => "Error" }
       }
       get "/things2" do

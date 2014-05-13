@@ -21,7 +21,7 @@ describe "API Response Codes" do
       format :json
 
       desc 'This gets thing.', {
-          http_codes: { 200 =>  { :model => Entities::ResponseCodes::Thing, :message => "Thing details" },
+          http_codes: { 200 =>  { :entity => Entities::ResponseCodes::Thing, :message => "Thing details" },
                         400 => "Error" },
       }
       get "/thing" do
@@ -30,7 +30,7 @@ describe "API Response Codes" do
       end
 
       desc 'This gets other thing.', {
-          http_codes: { 200 =>  { :model => Entities::ResponseCodes::Other, :message => "Other details" },
+          http_codes: { 200 =>  { :entity => Entities::ResponseCodes::Other, :message => "Other details" },
                         400 => "Error" }
       }
       get "/other" do
