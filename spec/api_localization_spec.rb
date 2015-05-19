@@ -10,7 +10,7 @@ describe "API Localization" do
           expose :text, :documentation => { :type => "string", :desc => "Content of something." }
         end
         class Thing < Grape::Entity
-          expose :text, :documentation => { :type => "string", :desc_t => 'entity.thing' }
+          expose :text, :documentation => { :type => "string", :desc => 'thing desc' }
         end
         class ThingRu < Grape::Entity
           expose :text, :documentation => { :type => "string", :desc_t => 'entity.thing' }
@@ -52,82 +52,44 @@ describe "API Localization" do
 
   it "i18n method description default language" do
     get '/swagger_doc/something.json'
-    JSON.parse(last_response.body).should == {
-        "apiVersion" => "0.1",
-        "swaggerVersion" => "1.2",
-        "basePath" => "http://example.org",
-        "resourcePath" => "",
-        "apis" => [{
-                       "path" => "/something.{format}",
-                       "operations" => [{
-                                            "produces" => [
-                                                "application/json"
-                                            ],
-                                            "notes" => "",
-                                            "summary" => "Desc of smth",
-                                            "nickname" => "GET-something---format-",
-                                            "httpMethod" => "GET",
-                                            "parameters" => []
-                                        }]
-                   }]
-
-    }
+    json = JSON.parse(last_response.body)
+    expect(json['apis'].first['operations'].first['summary']).to eq "Desc of smth"
   end
 
   it "i18n method description specified language" do
     get '/swagger_doc/something.json?locale=ru'
-    JSON.parse(last_response.body).should == {
-        "apiVersion" => "0.1",
-        "swaggerVersion" => "1.2",
-        "basePath" => "http://example.org",
-        "resourcePath" => "",
-        "apis" => [{
-                       "path" => "/something.{format}",
-                       "operations" => [{
-                                            "produces" => [
-                                                "application/json"
-                                            ],
-                                            "notes" => "",
-                                            "summary" => "Russian of smth",
-                                            "nickname" => "GET-something---format-",
-                                            "httpMethod" => "GET",
-                                            "parameters" => []
-                                        }]
-                   }]
-
-    }
+    json = JSON.parse(last_response.body)
+    expect(json['apis'].first['operations'].first['summary']).to eq "Russian of smth"
   end
 
   it "i18n entity localization" do
     get '/swagger_doc/thing.json'
-    JSON.parse(last_response.body)['models'].should == {
-        "Thing" => {
-            "id" => "Thing",
-            "name" => "Thing",
+    expect(JSON.parse(last_response.body)['models']).to match({
+          "Localization::Thing" => {
+            "id" => "Localization::Thing",
             "properties" => {
-                "text" => {
-                    "type" => "string",
-                    "description" => "thing desc"
-                }
+              "text" => {
+                "type" => "string",
+                "description" => "thing desc"
+              }
             }
-        }
-    }
+          }
+        })
   end
 
   it "i18n entity localization" do
     @options = {}
     get '/swagger_doc/thing_t.json?locale=ru'
-    JSON.parse(last_response.body)['models'].should == {
-        "ThingRu" => {
-            "id" => "ThingRu",
-            "name" => "ThingRu",
+    expect(JSON.parse(last_response.body)['models']).to match({
+          "Localization::ThingRu" => {
+            "id" => "Localization::ThingRu",
             "properties" => {
-                "text" => {
-                    "type" => "string",
-                    "description" => "Russian thing"
-                }
+              "text" => {
+                "type" => "string",
+                "description" => "Russian thing"
+              }
             }
-        }
-    }
+          }
+        })
   end
 end

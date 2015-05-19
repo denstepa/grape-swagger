@@ -209,6 +209,10 @@ module Grape
         memo
       end
     end
+
+    def exposures
+      @entity.exposures
+    end
   end
 
 end

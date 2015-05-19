@@ -46,24 +46,21 @@ describe "API Response Codes" do
 
   it "http codes should allow both with and without model valriants" do
     get '/swagger_doc/thing.json'
-    JSON.parse(last_response.body)['apis'].should ==
-        [{
+    json = JSON.parse(last_response.body)
+    expect(json['apis']).to eq([{
         "path" => "/thing.{format}",
         "operations" => [{
-          "produces" => [
-            "application/json"
-          ],
-          "notes" => "",
-          "type" => "Thing",
-          "summary" => "This gets thing.",
-          "nickname" => "GET-thing---format-",
-          "httpMethod" => "GET",
-          "parameters" => [],
+                "notes" => "",
+                "summary" => "This gets thing.",
+                "nickname" => "GET-thing---format-",
+                "method" => "GET",
+                "parameters" => [],
+                "type" => "void",
           "responseMessages" => [
               {
                   "code" => 200,
                   "message" => "Thing details",
-                  "responseModel" => "Thing"
+                  "responseModel" => "ResponseCodes::Thing"
 
               },
               {
@@ -72,43 +69,38 @@ describe "API Response Codes" do
               }
           ]
         }]
-      }]
+      }])
   end
 
   it "should add model from responce messages" do
     get '/swagger_doc/other.json'
-    JSON.parse(last_response.body)['apis'].should ==
-        [{
-             "path" => "/other.{format}",
-             "operations" => [{
-                                  "produces" => [
-                                      "application/json"
-                                  ],
-                                  "notes" => "",
-                                  "type" => "Other",
-                                  "summary" => "This gets other thing.",
-                                  "nickname" => "GET-other---format-",
-                                  "httpMethod" => "GET",
-                                  "parameters" => [],
-                                  "responseMessages" => [
-                                      {
-                                          "code" => 200,
-                                          "message" => "Other details",
-                                          "responseModel" => "Other"
+    json = JSON.parse(last_response.body)
+    expect(json['apis']).to match([{
+            "path" => "/other.{format}",
+            "operations" => [{
+                "notes" => "",
+                "type" => "void",
+                "summary" => "This gets other thing.",
+                "nickname" => "GET-other---format-",
+                "method" => "GET",
+                "parameters" => [],
+                "responseMessages" => [
+                  {
+                    "code" => 200,
+                    "message" => "Other details",
+                    "responseModel" => "ResponseCodes::Other"
+                  },
+                  {
+                    "code" => 400,
+                    "message" => "Error"
+                  }
+                ]
+              }]
+          }])
 
-                                      },
-                                      {
-                                          "code" => 400,
-                                          "message" => "Error"
-                                      }
-                                  ]
-                              }]
-         }]
-
-    JSON.parse(last_response.body)['models'].should == {
-        "Other" => {
-            "id" => "Other",
-            "name" => "Other",
+    expect(json['models']).to eq({
+        "ResponseCodes::Other" => {
+            "id" => "ResponseCodes::Other",
             "properties" => {
                 "text" => {
                     "type" => "string",
@@ -116,6 +108,6 @@ describe "API Response Codes" do
                 }
             }
         }
-    }
+    })
   end
 end

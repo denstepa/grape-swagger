@@ -21,12 +21,11 @@ describe 'API Models' do
         class Thing < Grape::Entity
           expose :text, documentation: { type: 'string', desc: 'Content of something.' }
         end
-      end
 
-      module Some
         class NestedThing < Grape::Entity
           expose :text, :documentation => { :type => "string", :desc => "Content of something." }
-          expose :nested_thing, :documentation => { :type => Some::Thing, :desc => "Nested field." }
+          expose :nested_thing, :documentation => { :type => Some::Thing, :desc => "Nested field." },
+            using: Some::Thing
         end
       end
 
@@ -202,6 +201,7 @@ describe 'API Models' do
       expect(subject['apis']).to eq [
         { 'path' => '/something.{format}', 'description' => 'Operations about somethings' },
         { 'path' => '/thing.{format}', 'description' => 'Operations about things' },
+        { "path" => "/nested.{format}", "description" => "Operations about nesteds" },
         { 'path' => '/somethingelse.{format}', 'description' => 'Operations about somethingelses' },
         { 'path' => '/enum_description_in_entity.{format}', 'description' => 'Operations about enum_description_in_entities' },
         { 'path' => '/aliasedthing.{format}', 'description' => 'Operations about aliasedthings' },
@@ -231,9 +231,20 @@ describe 'API Models' do
     expect(result['apis'][0]['path']).to start_with '/somethingelse'
 
     expect(result['models']['SomeThingElse']).to include('id' => 'SomeThingElse',
-                                                         'properties' => {
-                                                           'else_text' => {
-                                                        )
+        'properties' => {
+          'else_text' => {
+            'type' => 'string',
+            'description' => 'Content of something else.'
+          },
+          'parts' => {
+            'type' => 'array',
+            'items' => { '$ref' => 'ComposedOf' }
+          },
+          'part' => { '$ref' => 'composes' }
+        },
+        'required' => ['parts']
+
+      )
 
     expect(result['models']['ComposedOf']).to include(
       'id' => 'ComposedOf',
@@ -245,38 +256,7 @@ describe 'API Models' do
       }
     )
 
-  it "should include nested type when specified" do
-    get '/swagger_doc/thing.json'
-    JSON.parse(last_response.body).should == {
-      "apiVersion" => "0.1",
-      "swaggerVersion" => "1.2",
-      "basePath" => "http://example.org",
-      "resourcePath" => "",
-      "apis" => [{
-        "path" => "/thing.{format}",
-        "operations" => [{
-          "produces" => [
-            "application/json"
-          ],
-          "notes" => "",
-          "type" => "Thing",
-          "summary" => "This gets thing.",
-          "nickname" => "GET-thing---format-",
-          "httpMethod" => "GET",
-          "parameters" => []
-        }]
-      }],
-      "models" => {
-        "Thing" => {
-          "id" => "Thing",
-          "name" => "Thing",
-          "properties" => {
-            "text" => {
-              "type" => "string",
-              "description" => "Content of something."
-            }
-          }
-    expect(result['models']['composed']).to include(
+    expect(result['models']['composed']).to eq(
       'id' => 'composed',
       'properties' => {
         'part_text' => {
@@ -288,34 +268,47 @@ describe 'API Models' do
     )
   end
 
+  it "should include nested type when specified" do
+    get '/swagger_doc/thing.json'
+    result = JSON.parse(last_response.body)
+    expect(result['models']['Some::Thing']).to eq({
+          "id" => "Some::Thing",
+          "properties" => {
+            "text" => {
+              "type" => "string",
+              "description" => "Content of something."
+            },
+            "name"=>{"type"=>"string", "description"=>"Name of something."}
+          }
+        })
+  end
+
   it "should include nested models when specified" do
     get '/swagger_doc/nested.json'
-    JSON.parse(last_response.body)['models'].should eq({
-      "NestedThing" => {
-          "id" => "NestedThing",
-          "name" => "NestedThing",
-          "properties" => {
-              "text" => {
-                  "type" => "string",
-                  "description" => "Content of something."
-              },
-              "nested_thing" => {
-                  "type" => "Thing",
-                  "description" => "Nested field."
-              }
+    result = JSON.parse(last_response.body)
+    expect(result['models']['Some::NestedThing']).to eq(
+        "id" => "Some::NestedThing",
+        "properties" => {
+          "text" => {
+            "type" => "string",
+            "description" => "Content of something."
+          },
+          "nested_thing" => {
+            "$ref" => "Some::Thing",
+            "description" => "Nested field."
           }
-      },
-      "Thing" => {
-          "id" => "Thing",
-          "name" => "Thing",
-          "properties" => {
-              "text" => {
-                  "type" => "string",
-                  "description" => "Content of something."
-              }
-          }
-      }
-    })
+        })
+
+    expect(result['models']['Some::Thing']).to eq(
+        "id" => "Some::Thing",
+        "properties" => {
+          "text" => {
+            "type" => "string",
+            "description" => "Content of something."
+          },
+          "name"=>{"type"=>"string", "description"=>"Name of something."}
+        }
+      )
   end
   it 'includes enum values in params and documentation.' do
     get '/swagger_doc/enum_description_in_entity'

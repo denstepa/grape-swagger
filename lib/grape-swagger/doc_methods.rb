@@ -163,9 +163,13 @@ module GrapeSwagger
         model.entity_name
       else
         name = model.to_s
-        entity_parts = name.split('::')
-        entity_parts.reject! { |p| p == 'Entity' || p == 'Entities' }
-        entity_parts.join('::')
+        if @@hide_global_scope
+          name = name.split('::Entities::').last.split('::Entity::').last
+        else
+          entity_parts = name.split('::')
+          entity_parts.reject! { |p| p == 'Entity' || p == 'Entities' }
+          entity_parts.join('::')
+        end
       end
     end
 
@@ -198,6 +202,17 @@ module GrapeSwagger
           # rename Grape Entity's "desc" to "description"
           property_description = p.delete(:desc)
           p[:description] = property_description if property_description
+
+          p[:description] = I18n.t p.delete(:desc_t) if p[:desc_t]
+
+          # if property_info[:description].class == Proc
+          #   property_info[:description] = property_info[:description].call()
+          # end
+
+          if p[:type].class == Class
+            models << property_info[:type]
+            p[:type] = parse_entity_name property_info[:type]
+          end
 
           # rename Grape's 'values' to 'enum'
           select_values = p.delete(:values)
@@ -256,16 +271,40 @@ module GrapeSwagger
     end
 
     def parse_http_codes(codes, models)
+      puts "codes: #{codes}, models: #{models}"
+
       codes ||= {}
       codes.map do |k, v, m|
         models << m if m
-        http_code_hash = {
-          code: k,
-          message: v
-        }
+        http_code_hash = if v.class == Hash
+          hash = { code: k, message: v[:message] }
+          hash[:responseModel] = parse_entity_name(v[:entity]) if v[:entity]
+          hash[:responseModel] ||= parse_entity_name(Grape::Collection.new(v[:collection])) if v[:collection]
+          hash
+        else
+          {
+              code: k,
+              message: v
+          }
+        end
         http_code_hash[:responseModel] = parse_entity_name(m) if m
         http_code_hash
       end
+    end
+
+    def parse_http_code_models(codes)
+      codes ||= {}
+      codes.inject([]) do |arr, (k, v)|
+        if v.class == Hash
+          arr << v[:entity] if v[:entity]
+          arr += parse_collection(v[:collection]) if v[:collection]
+        end
+        arr
+      end
+    end
+
+    def parse_collection(collection)
+      [Grape::Collection.new(collection), collection[:data_using]]
     end
 
     def strip_heredoc(string)
@@ -306,7 +345,8 @@ module GrapeSwagger
         authorizations: nil,
         root_base_path: true,
         api_documentation: { desc: 'Swagger compatible API description' },
-        specific_api_documentation: { desc: 'Swagger compatible API description for specific API' }
+        specific_api_documentation: { desc: 'Swagger compatible API description for specific API' },
+        hide_global_scope: false
       }
 
       options = defaults.merge(options)
@@ -323,7 +363,7 @@ module GrapeSwagger
       api_doc          = options[:api_documentation].dup
       specific_api_doc = options[:specific_api_documentation].dup
       @@models         = options[:models] || []
-
+      @@hide_global_scope = options[:hide_global_scope]
       @@hide_documentation_path = options[:hide_documentation_path]
 
       if options[:format]
@@ -385,6 +425,7 @@ module GrapeSwagger
       get "#{@@mount_path}/:name" do
         header['Access-Control-Allow-Origin']   = '*'
         header['Access-Control-Request-Method'] = '*'
+        I18n.locale = params[:locale] || I18n.default_locale
 
         models = []
         routes = target_class.combined_namespace_routes[params[:name]]
@@ -414,9 +455,14 @@ module GrapeSwagger
 
             models = @@documentation_class.models_with_included_presenters(models.flatten.compact)
 
+            models += @@documentation_class.parse_collection(route.route_collection) if route.route_collection
+            models += @@documentation_class.parse_http_code_models(route.route_http_codes)
+
+            route_description = route.route_description.is_a?(Proc) ? route.route_description.call : route.route_description
+
             operation = {
               notes: notes.to_s,
-              summary: route.route_description || '',
+              summary: route_description || '',
               nickname: route.route_nickname || (route.route_method + route.route_path.gsub(/[\/:\(\)\.]/, '-')),
               method: route.route_method,
               parameters: @@documentation_class.parse_header_params(route.route_headers) + @@documentation_class.parse_params(route.route_params, route.route_path, route.route_method),
